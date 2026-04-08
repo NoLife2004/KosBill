@@ -13,6 +13,8 @@ import { useTheme } from "next-themes";
 import { LayoutDashboard, LogOut, Wallet, UserCircle, Sun, Moon, ShieldCheck, Settings } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function HomePage() {
   const { theme, setTheme } = useTheme();
@@ -101,17 +103,6 @@ export default function HomePage() {
     }
   };
 
-  const handleSeedData = async () => {
-    try {
-      const res = await fetch("/api/seed", { method: "POST" });
-      if (res.ok) {
-        fetchBills();
-      }
-    } catch (error) {
-      console.error("Failed to seed bills:", error);
-    }
-  };
-
   if (isPending || !session?.user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -135,7 +126,12 @@ export default function HomePage() {
 
           <div className="flex items-center gap-1 sm:gap-4">
             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground mr-2 border-r pr-4 h-8">
-              <UserCircle className="w-4 h-4" />
+              <Avatar className="w-6 h-6 border">
+                <AvatarImage src={session.user.image || ""} />
+                <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                  {session.user.name?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <span className="truncate max-w-[120px] font-medium">{session.user.name}</span>
               {isAdmin && (
                 <Badge variant="outline" className="ml-1 text-[10px] h-4 uppercase border-primary/30 text-primary">Admin</Badge>
@@ -143,6 +139,12 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-0.5 sm:gap-2">
+              <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-primary">
+                <Link href="/profile">
+                  <UserCircle className="w-5 h-5" />
+                </Link>
+              </Button>
+
               {isAdmin && (
                 <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-primary">
                   <Link href="/admin">
@@ -210,11 +212,19 @@ export default function HomePage() {
             />
           </div>
           {!loading && bills.length === 0 && (
-            <div className="mt-8 text-center bg-muted/30 p-8 rounded-2xl border-2 border-dashed">
-              <p className="text-muted-foreground mb-4 italic">No bills yet. Try some sample data!</p>
-              <Button variant="outline" onClick={handleSeedData} className="text-primary hover:bg-primary/5">
-                Seed Sample Bills (Demo Data)
-              </Button>
+            <div className="mt-8">
+              <Alert className="border-l-4 shadow-xl bg-blue-50 dark:bg-blue-950/20 border-blue-500 text-blue-900 dark:text-blue-100 py-12 px-8 text-center flex flex-col items-center rounded-2xl transition-all hover:scale-[1.01]">
+                <div className="bg-blue-100 dark:bg-blue-900/40 p-5 rounded-full mb-6">
+                  <Wallet className="h-10 w-10 text-blue-600 dark:text-blue-400 opacity-90" />
+                </div>
+                <AlertTitle className="text-2xl font-black mb-3 tracking-tight">Belum Ada Tagihan</AlertTitle>
+                <AlertDescription className="text-base font-medium opacity-80 mb-8 max-w-md mx-auto leading-relaxed">
+                  Pantau pengeluaran kos Anda dengan mudah. Tambahkan tagihan pertama Anda sekarang!
+                </AlertDescription>
+                <Button onClick={() => setIsFormOpen(true)} size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg text-white font-bold h-14 px-10 rounded-xl transition-all active:scale-95">
+                  Tambah Tagihan Baru
+                </Button>
+              </Alert>
             </div>
           )}
         </div>

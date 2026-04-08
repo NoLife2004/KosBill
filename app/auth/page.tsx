@@ -1,19 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { signIn, signUp } from "@/lib/auth-client";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn, signUp, signOut } from "@/lib/auth-client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet } from "lucide-react";
+import { Wallet, CheckCircle } from "lucide-react";
+import Link from "next/link";
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const verified = searchParams.get("verified");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+
+  useEffect(() => {
+    if (verified === "true") {
+      alert("Email berhasil diverifikasi! Silakan masuk dengan akun Anda.");
+    }
+  }, [verified]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,15 +40,16 @@ export default function AuthPage() {
         name,
         email,
         password,
+        callbackURL: "/auth?verified=true", // Verification link lands here
       });
 
       if (error) {
-        setError(error.message || "Failed to sign up");
+        setError(error.message || "Gagal mendaftar");
       } else {
-        router.push("/");
+        setSignupSuccess(true);
       }
     } catch (err) {
-      setError("Failed to sign up");
+      setError("Gagal mendaftar");
     } finally {
       setLoading(false);
     }
@@ -110,7 +121,15 @@ export default function AuthPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="signin-password">Password</Label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-blue-600 hover:underline font-medium"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                   <Input
                     id="signin-password"
                     name="password"
@@ -127,47 +146,75 @@ export default function AuthPage() {
             </TabsContent>
 
             <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    name="name"
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                  />
+              {signupSuccess ? (
+                <div className="text-center space-y-4 py-4 animate-in fade-in zoom-in duration-300">
+                  <div className="flex justify-center">
+                    <div className="bg-green-100 p-3 rounded-full">
+                      <CheckCircle className="w-12 h-12 text-green-600" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Registration Success!</h3>
+                  <p className="text-gray-600">
+                    We've sent a verification link to your email. Please verify your email before signing in.
+                  </p>
+                  <Button 
+                    onClick={() => setSignupSuccess(false)} 
+                    className="w-full h-11 bg-blue-600 hover:bg-blue-700"
+                  >
+                    Go to Sign In
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    name="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                    minLength={8}
-                  />
-                </div>
-                {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
-                <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
-                  {loading ? "Creating account..." : "Create Account"}
-                </Button>
-              </form>
+              ) : (
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Input
+                      id="signup-name"
+                      name="name"
+                      type="text"
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input
+                      id="signup-email"
+                      name="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      name="password"
+                      type="password"
+                      placeholder="••••••••"
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                  {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+                  <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                    {loading ? "Creating account..." : "Create Account"}
+                  </Button>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthContent />
+    </Suspense>
   );
 }

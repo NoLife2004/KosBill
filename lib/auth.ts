@@ -4,6 +4,7 @@ import { admin } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import * as schema from "@/server/db/schema";
+import { sendEmail } from "./email";
 
 // Initialize Better Auth with the database connection and admin plugin
 export const auth = betterAuth({
@@ -22,10 +23,52 @@ export const auth = betterAuth({
     "https://*.vercel.run",
   ].filter(Boolean),
 
-  // Email and password authentication (no email verification required)
+  // Email and password authentication with verification and reset functionality
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
+    async sendVerificationEmail(data: { user: { email: string; name: string }; url: string; token: string }, request?: Request) {
+      const verificationUrl = data.url;
+      
+      await sendEmail({
+        to: data.user.email,
+        subject: "Verify your email - KosBill Reminder",
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
+            <h2 style="color: #2563eb; margin-bottom: 20px;">Welcome to KosBill!</h2>
+            <p style="color: #333; font-size: 16px; line-height: 1.5;">Hello ${data.user.name},</p>
+            <p style="color: #333; font-size: 16px; line-height: 1.5;">Please verify your email address to complete your registration.</p>
+            <div style="margin: 35px 0;">
+              <a href="${verificationUrl}" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block;">Verify Email</a>
+            </div>
+            <p style="color: #666; font-size: 14px; line-height: 1.5;">If you didn't create an account, you can safely ignore this email.</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
+            <p style="color: #999; font-size: 12px; text-align: center;">KosBill Reminder Team</p>
+          </div>
+        `,
+      });
+    },
+    async sendResetPassword(data: { user: { email: string; name: string }; url: string; token: string }, request?: Request) {
+      const resetUrl = data.url;
+      
+      await sendEmail({
+        to: data.user.email,
+        subject: "Reset your password - KosBill Reminder",
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
+            <h2 style="color: #2563eb; margin-bottom: 20px;">Reset Password Request</h2>
+            <p style="color: #333; font-size: 16px; line-height: 1.5;">Hello ${data.user.name},</p>
+            <p style="color: #333; font-size: 16px; line-height: 1.5;">Click the button below to reset your password. This link will expire in 1 hour.</p>
+            <div style="margin: 35px 0;">
+              <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 16px; display: inline-block;">Reset Password</a>
+            </div>
+            <p style="color: #666; font-size: 14px; line-height: 1.5;">If you didn't request this, you can safely ignore this email.</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
+            <p style="color: #999; font-size: 12px; text-align: center;">KosBill Reminder Team</p>
+          </div>
+        `,
+      });
+    },
   },
 
   // Admin plugin - defaultRole ensures new users get role; databaseHooks fix OAuth/migration edge cases

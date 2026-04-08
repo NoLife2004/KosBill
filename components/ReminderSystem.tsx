@@ -80,22 +80,26 @@ export function ReminderSystem({ bills }: ReminderSystemProps) {
   return (
     <div className="space-y-4 mb-8">
       {notificationsPermission === "default" && (
-        <Alert className="bg-blue-50 border-blue-200">
-          <Bell className="h-4 w-4 text-blue-600" />
-          <AlertTitle>Enable Notifications</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>Get desktop reminders when your bills are due!</span>
-            <Button size="sm" variant="outline" onClick={requestPermission} className="ml-4">
-              Enable
+        <Alert className="border-l-4 shadow-md bg-blue-50 dark:bg-blue-950/30 border-blue-500 text-blue-900 dark:text-blue-200 py-4 px-5 rounded-xl transition-all hover:shadow-lg">
+          <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+            <div>
+              <AlertTitle className="text-base font-bold mb-1">🔔 Aktifkan Pengingat Desktop</AlertTitle>
+              <AlertDescription className="text-sm font-medium opacity-80">
+                Dapatkan notifikasi langsung di komputer Anda saat tagihan mendekati jatuh tempo!
+              </AlertDescription>
+            </div>
+            <Button size="sm" onClick={requestPermission} className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 px-6 shrink-0 shadow-sm">
+              Aktifkan Sekarang
             </Button>
-          </AlertDescription>
+          </div>
         </Alert>
       )}
 
       {reminders.map((reminder) => (
         <Alert
           key={reminder.id}
-          className={`border-l-4 shadow-sm ${
+          className={`border-l-4 shadow-md py-4 px-5 rounded-xl transition-all hover:shadow-lg ${
             reminder.type === "overdue"
               ? "bg-red-50 dark:bg-red-950/30 border-red-500 text-red-900 dark:text-red-200"
               : reminder.type === "dueToday"
@@ -103,19 +107,31 @@ export function ReminderSystem({ bills }: ReminderSystemProps) {
               : "bg-amber-50 dark:bg-amber-950/30 border-amber-500 text-amber-900 dark:text-amber-200"
           }`}
         >
-          <AlertTriangle
-            className={`h-4 w-4 ${
-              reminder.type === "overdue"
-                ? "text-red-600 dark:text-red-400"
-                : reminder.type === "dueToday"
-                ? "text-orange-600 dark:text-orange-400"
-                : "text-amber-600 dark:text-amber-400"
-            }`}
-          />
-          <AlertTitle className="font-bold mb-1">
-            {reminder.type === "overdue" ? "🚨 OVERDUE" : reminder.type === "dueToday" ? "⚠️ DUE TODAY" : "⏳ DUE SOON"}
-          </AlertTitle>
-          <AlertDescription className="font-medium opacity-90">{reminder.message}</AlertDescription>
+          <div className="flex items-start gap-4">
+            <div className={`p-2 rounded-full shrink-0 ${
+              reminder.type === "overdue" ? "bg-red-100 dark:bg-red-900/30" : 
+              reminder.type === "dueToday" ? "bg-orange-100 dark:bg-orange-900/30" : 
+              "bg-amber-100 dark:bg-amber-900/30"
+            }`}>
+              <AlertTriangle
+                className={`h-5 w-5 ${
+                  reminder.type === "overdue"
+                    ? "text-red-600 dark:text-red-400"
+                    : reminder.type === "dueToday"
+                    ? "text-orange-600 dark:text-orange-400"
+                    : "text-amber-600 dark:text-amber-400"
+                }`}
+              />
+            </div>
+            <div>
+              <AlertTitle className="text-base font-bold mb-1">
+                {reminder.type === "overdue" ? "🚨 TAGIHAN TERLAMBAT" : reminder.type === "dueToday" ? "⚠️ JATUH TEMPO HARI INI" : "⏳ SEGERA JATUH TEMPO"}
+              </AlertTitle>
+              <AlertDescription className="text-sm font-medium opacity-80 leading-relaxed">
+                {reminder.message}
+              </AlertDescription>
+            </div>
+          </div>
         </Alert>
       ))}
     </div>
