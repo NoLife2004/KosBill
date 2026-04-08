@@ -12,7 +12,7 @@ const router: Router = {
     accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID!,
     secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY!,
   }),
-  bucketName: "yapi-app",
+  bucketName: "kosbill-avatars",
   routes: {
     // Image uploads route
     images: route({
