@@ -95,27 +95,27 @@ export function ReminderSystem({ bills }: ReminderSystemProps) {
       {reminders.map((reminder) => (
         <Alert
           key={reminder.id}
-          className={`${
+          className={`border-l-4 shadow-sm ${
             reminder.type === "overdue"
-              ? "bg-red-50 border-red-200"
+              ? "bg-red-50 dark:bg-red-950/30 border-red-500 text-red-900 dark:text-red-200"
               : reminder.type === "dueToday"
-              ? "bg-orange-50 border-orange-200"
-              : "bg-yellow-50 border-yellow-200"
+              ? "bg-orange-50 dark:bg-orange-950/30 border-orange-500 text-orange-900 dark:text-orange-200"
+              : "bg-amber-50 dark:bg-amber-950/30 border-amber-500 text-amber-900 dark:text-amber-200"
           }`}
         >
           <AlertTriangle
             className={`h-4 w-4 ${
               reminder.type === "overdue"
-                ? "text-red-600"
+                ? "text-red-600 dark:text-red-400"
                 : reminder.type === "dueToday"
-                ? "text-orange-600"
-                : "text-yellow-600"
+                ? "text-orange-600 dark:text-orange-400"
+                : "text-amber-600 dark:text-amber-400"
             }`}
           />
-          <AlertTitle className={reminder.type === "overdue" ? "text-red-800 font-bold" : ""}>
-            {reminder.type === "overdue" ? "OVERDUE" : reminder.type === "dueToday" ? "DUE TODAY" : "DUE SOON"}
+          <AlertTitle className="font-bold mb-1">
+            {reminder.type === "overdue" ? "🚨 OVERDUE" : reminder.type === "dueToday" ? "⚠️ DUE TODAY" : "⏳ DUE SOON"}
           </AlertTitle>
-          <AlertDescription>{reminder.message}</AlertDescription>
+          <AlertDescription className="font-medium opacity-90">{reminder.message}</AlertDescription>
         </Alert>
       ))}
     </div>

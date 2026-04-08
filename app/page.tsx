@@ -10,7 +10,9 @@ import { BillForm } from "@/components/BillForm";
 import { ReminderSystem } from "@/components/ReminderSystem";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
-import { LayoutDashboard, LogOut, Wallet, UserCircle, Sun, Moon } from "lucide-react";
+import { LayoutDashboard, LogOut, Wallet, UserCircle, Sun, Moon, ShieldCheck, Settings } from "lucide-react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 
 export default function HomePage() {
   const { theme, setTheme } = useTheme();
@@ -20,6 +22,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
+
+  const isAdmin = session?.user?.role === "admin";
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -64,6 +68,7 @@ export default function HomePage() {
   };
 
   const handleUpdateBill = async (id: string, updates: Partial<Bill>) => {
+    console.log("Updating bill:", id, updates);
     try {
       const res = await fetch(`/api/bills/${id}`, {
         method: "PUT",
@@ -71,7 +76,11 @@ export default function HomePage() {
         body: JSON.stringify(updates),
       });
       if (res.ok) {
+        console.log("Bill updated successfully");
         fetchBills();
+      } else {
+        const errorData = await res.json();
+        console.error("Failed to update bill:", errorData);
       }
     } catch (error) {
       console.error("Failed to update bill:", error);
@@ -105,91 +114,112 @@ export default function HomePage() {
 
   if (isPending || !session?.user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <header className="sticky top-0 z-30 w-full border-b bg-white/80 backdrop-blur-md">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <Wallet className="w-5 h-5 text-white" />
+            <div className="bg-primary p-2 rounded-lg shrink-0">
+              <Wallet className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
               KosBill Reminder
             </h1>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="text-gray-600"
-            >
-              {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </Button>
-             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground mr-4 border-l pl-4">
+          <div className="flex items-center gap-1 sm:gap-4">
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground mr-2 border-r pr-4 h-8">
               <UserCircle className="w-4 h-4" />
-              <span>{session.user.name}</span>
+              <span className="truncate max-w-[120px] font-medium">{session.user.name}</span>
+              {isAdmin && (
+                <Badge variant="outline" className="ml-1 text-[10px] h-4 uppercase border-primary/30 text-primary">Admin</Badge>
+              )}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={() => signOut({ fetchOptions: { onSuccess: () => router.push("/auth") } })}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
+
+            <div className="flex items-center gap-0.5 sm:gap-2">
+              {isAdmin && (
+                <Button variant="ghost" size="icon" asChild className="text-muted-foreground hover:text-primary">
+                  <Link href="/admin">
+                    <ShieldCheck className="w-5 h-5" />
+                  </Link>
+                </Button>
+              )}
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="text-muted-foreground"
+              >
+                {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 px-2 sm:px-3"
+                onClick={() => signOut({ fetchOptions: { onSuccess: () => router.push("/auth") } })}
+              >
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <ReminderSystem bills={bills} />
+      <main className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+        <div className="w-full overflow-hidden">
+          <ReminderSystem bills={bills} />
+        </div>
 
-        <div className="mb-8">
+        <div className="mb-10">
           <div className="flex items-center gap-2 mb-6">
-            <LayoutDashboard className="w-5 h-5 text-blue-600" />
-            <h2 className="text-2xl font-bold">Dashboard</h2>
+            <LayoutDashboard className="w-5 h-5 text-primary" />
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight">Dashboard</h2>
           </div>
           <DashboardStats bills={bills} />
         </div>
 
-        <div className="mb-8">
+        <div className="mb-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <Wallet className="w-5 h-5 text-blue-600" />
-              <h2 className="text-2xl font-bold">Your Bills</h2>
+              <Wallet className="w-5 h-5 text-primary" />
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight">Your Bills</h2>
             </div>
           </div>
-          <BillsList
-            bills={bills}
-            onUpdate={handleUpdateBill}
-            onDelete={handleDeleteBill}
-            onEdit={(bill) => {
-              setEditingBill(bill);
-              setIsFormOpen(true);
-            }}
-            onAdd={() => {
-              setEditingBill(null);
-              setIsFormOpen(true);
-            }}
-          />
+          <div className="w-full">
+            <BillsList
+              bills={bills}
+              onUpdate={handleUpdateBill}
+              onDelete={handleDeleteBill}
+              onEdit={(bill) => {
+                setEditingBill(bill);
+                setIsFormOpen(true);
+              }}
+              onAdd={() => {
+                setEditingBill(null);
+                setIsFormOpen(true);
+              }}
+            />
+          </div>
           {!loading && bills.length === 0 && (
-            <div className="mt-4 text-center">
-              <Button variant="outline" onClick={handleSeedData} className="text-blue-600">
+            <div className="mt-8 text-center bg-muted/30 p-8 rounded-2xl border-2 border-dashed">
+              <p className="text-muted-foreground mb-4 italic">No bills yet. Try some sample data!</p>
+              <Button variant="outline" onClick={handleSeedData} className="text-primary hover:bg-primary/5">
                 Seed Sample Bills (Demo Data)
               </Button>
             </div>
           )}
         </div>
       </main>
+
 
       <BillForm
         bill={editingBill}

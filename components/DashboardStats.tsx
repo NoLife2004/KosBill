@@ -30,37 +30,37 @@ export function DashboardStats({ bills }: DashboardStatsProps) {
       title: "Total Unpaid",
       value: `Rp ${totalUnpaidAmount.toLocaleString("id-ID")}`,
       description: `${unpaidBills.length} pending bills`,
-      color: "text-red-600",
+      color: "text-destructive",
     },
     {
       title: "Upcoming (3 Days)",
       value: upcomingBills.length.toString(),
       description: "Bills due soon",
-      color: "text-yellow-600",
+      color: "text-yellow-600 dark:text-yellow-500",
     },
     {
       title: "Overdue",
       value: overdueBills.length.toString(),
       description: "Immediate action required",
-      color: "text-red-700 font-bold",
+      color: "text-destructive font-bold",
     },
     {
       title: "Paid This Month",
       value: bills.filter((b) => b.status === "paid").length.toString(),
       description: "Great progress!",
-      color: "text-green-600",
+      color: "text-green-600 dark:text-green-400",
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
-        <Card key={stat.title}>
+        <Card key={stat.title} className="bg-card hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+            <div className={`text-xl md:text-2xl font-bold truncate ${stat.color}`}>{stat.value}</div>
             <p className="text-xs text-muted-foreground">{stat.description}</p>
           </CardContent>
         </Card>
@@ -68,3 +68,4 @@ export function DashboardStats({ bills }: DashboardStatsProps) {
     </div>
   );
 }
+
