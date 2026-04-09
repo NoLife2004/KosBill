@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -10,46 +8,56 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("❌ ERROR: RESEND_API_KEY is missing!");
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
+
+  if (!apiKey) {
+    console.warn("⚠️ [Email] RESEND_API_KEY is missing. Printing to console instead.");
     
     if (process.env.NODE_ENV !== "production") {
       console.log("\n" + "=".repeat(50));
       console.log("🛠️  DEVELOPMENT EMAIL LOG");
       console.log(`To: ${to}`);
+      console.log(`From: ${fromAddress}`);
       console.log(`Subject: ${subject}`);
       console.log("-".repeat(50));
-      // Look for links in the HTML
       const linkMatch = html.match(/href="([^"]+)"/);
       if (linkMatch) {
-        console.log(`LINK: ${linkMatch[1]}`);
+        console.log(`\x1b[36mLINK: ${linkMatch[1]}\x1b[0m`);
       }
+      console.log("-".repeat(50));
       console.log("=".repeat(50) + "\n");
       return { id: "dev-mock-id" };
     }
-    throw new Error("Email system not configured (API Key missing)");
+    throw new Error("Sistem email belum dikonfigurasi (RESEND_API_KEY hilang)");
   }
 
-  const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
+  const resend = new Resend(apiKey);
+  console.log(`[Email] Attempting to send: to=${to}, from=${fromAddress}, subject="${subject}"`);
 
   try {
     const { data, error } = await resend.emails.send({
       from: fromAddress,
-      to,
+      to: [to], // Some versions prefer array
       subject,
       html,
       text: text || "",
     });
 
     if (error) {
-      console.error("❌ Resend API Error:", error);
+      console.error("❌ [Email Error Detail]:", {
+        name: error.name,
+        message: error.message,
+        // @ts-ignore
+        statusCode: error.statusCode,
+      });
       throw new Error(`Resend Error: ${error.message}`);
     }
 
-    console.log(`✅ Email sent successfully to ${to}. ID: ${data?.id}`);
+    console.log(`✅ [Email Success]: Sent to ${to}. ID: ${data?.id}`);
     return data;
-  } catch (err) {
-    console.error("❌ Failed to send email via Resend:", err);
+  } catch (err: any) {
+    console.error("❌ [Email Exception]:", err?.message || err);
     throw err;
   }
 }
