@@ -20,9 +20,9 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "pub-da326253987c4aec9c982fc8eb48c1d0.r2.dev",
+        pathname: "/**",
       },
     ],
-    
   },
   typescript: {
     ignoreBuildErrors: true,

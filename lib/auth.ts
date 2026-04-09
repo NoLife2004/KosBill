@@ -20,8 +20,7 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://localhost:3001",
     process.env.NEXT_PUBLIC_APP_URL || "",
-    // "https://*.vercel.run",
-    "/\.vercel\.app$/",
+    "https://*.vercel.run",
   ].filter(Boolean),
 
   // Email verification settings (moved to top level as recommended by docs)
