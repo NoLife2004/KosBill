@@ -35,22 +35,26 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
   const resend = new Resend(apiKey);
   console.log(`[Email] Attempting to send: to=${to}, from=${fromAddress}, subject="${subject}"`);
 
+  // Detect if we are using onboarding address which has strict limits
+  if (fromAddress === "onboarding@resend.dev") {
+    console.warn("⚠️ [Email] Using onboarding@resend.dev. This only works for the email address registered with your Resend account.");
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: fromAddress,
-      to: [to], // Some versions prefer array
+      to: to, // Changed from [to] to string for better compatibility
       subject,
       html,
       text: text || "",
     });
 
     if (error) {
-      console.error("❌ [Email Error Detail]:", {
-        name: error.name,
-        message: error.message,
-        // @ts-ignore
-        statusCode: error.statusCode,
-      });
+      console.error("❌ [Email Error Detail]:", error);
+      // More descriptive error for domain verification issues
+      if (error.message.includes("domain") || error.message.includes("permission")) {
+        throw new Error(`Resend Error: Pastikan domain '${fromAddress.split("@")[1]}' sudah terverifikasi di dashboard Resend. (Original: ${error.message})`);
+      }
       throw new Error(`Resend Error: ${error.message}`);
     }
 
