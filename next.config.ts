@@ -17,7 +17,12 @@ const nextConfig: NextConfig = {
         hostname: "files.useyapi.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "pub-da326253987c4aec9c982fc8eb48c1d0.r2.dev",
+      },
     ],
+    
   },
   typescript: {
     ignoreBuildErrors: true,
